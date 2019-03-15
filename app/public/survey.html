@@ -106,9 +106,13 @@
     $('#submitButton').on("click", function () {
       var missingName = false;
       var missingQuestion = false;
-      
+      var missingImage = false;
+
       //Remove class in case it was added
       $("#name").removeClass("NotValid");
+      $("#image").removeClass("NotValid");
+      $("#name").attr("placeholder", "");
+      $("#image").attr("placeholder", "");
        for (i = 1; i <= questions.length; i++) {
         $(`#q${i}`).removeClass("NotValid");
       };
@@ -120,6 +124,7 @@
         missingName = true;
       };
 
+
       //Check if one question was not answered
       for (i = 1; i <= questions.length; i++) {
         if ($(`#q${i}`).val() === null){
@@ -128,8 +133,18 @@
         };
       };
 
+      //Check if image is correct
+      if ($("#image").val().trim() !== ""){
+        if (!(/\.(gif|jpg|jpeg|tiff|png)$/i).test($("#image").val().trim())) {
+          $("#image").addClass("NotValid");
+          $("#image").val("");
+          $("#image").attr("placeholder", "Must end on .gif, .jpg, .jpeg, .tiff, .png or be empty");
+          missingImage = true;
+        }
+      }
+
       //Stop if the name or a question is missing
-      if (missingName || missingQuestion){
+      if (missingName || missingQuestion || missingImage){
         return;
       }
 
