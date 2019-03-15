@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Friend Finder</title>
+  <link rel="stylesheet" href="../public/css/reset.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+  <link rel="stylesheet" href="../public/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src="https://code.jquery.com/jquery.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+  <div class="container">
+    <h2>Survey Questions</h2>
+    <hr>
+    <h3>About You</h3>
+    <div class="row">
+      <div class="col-5">
+        <h4>Name (Required)</h4>
+        <input type="text" name="" id="name" class="form-control" required="">
+        <hr>
+      </div>
+      <div class="col-5">
+        <h4>Link to Photo</h4>
+        <input type="text" name="" id="image" class="form-control" required="">
+        <hr>
+      </div>
+      <hr>
+    </div>
+        
+    <div class="row questions"></div>
+    <br>
+  </div>
+  <div class="container text-center">
+    <button type="submit" value="Submit" class="btn btn-lg btn-primary text-center" id="submitButton">Submit</button>
+    <hr>
+
+    <div class="row">
+			<div class="col-12">
+				<a href="/api/friends"> API Friends List </a> |
+				<a href="https://github.com/felixvl31/FriendFinder"> GitHub Repo </a>
+			</div>
+		</div>
+  </div>
+
+  <!-- Modal -->
+  <div id="results" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        <div class="modal-body text-center ">
+          <h2 id="modalName"></h2>
+          <h2 class="modal-title">...Will be there for you!</h2>
+          <p id="modalImage"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script> 
+    var questions = [
+      "Where Rachel and Ross on a break?",
+      "Should Joey share food?",
+      "Have you ever eat cheesecake of the floor?",
+      "Are you a great chef?",
+      "Chandler Bing is a transponster?",
+      "Do you have a twin?",
+      "Did you know Monica when she was fat?",
+      "Do you love the chick and the duck?",
+      "Phoebe is a great guitar player?",
+      "How you doin?"
+    ];
+
+    for (i = 1; i<=questions.length ; i++) {
+      $(".questions").append(`<div class="col-12 col-md-6" id="ask` + (i) + `"></div>`)
+      var HTML = `
+        <h3>Question `+ (i) + `</h3>
+            <h4>`+ questions[i-1] + `</h4>
+            <form>
+              <select id="q`+ (i) + `" name="q` + (i) + `" required>
+                <option value="" selected disabled hidden >Pick an option</option>
+                <option class="option" value="1">Strongly Disagree</option>
+                <option class="option" value="2">Disagree</option>
+                <option class="option" value="3">Not sure</option>
+                <option class="option" value="4">Agree</option>
+                <option class="option" value="5">Strongly Agree</option>
+              </select>
+            </form>
+        `;
+      $("#ask" + (i)).append(HTML)
+    }
+  </script>
+
+  <script type="text/javascript">
+
+    $('#submitButton').on("click", function () {
+      var missingName = false;
+      var missingQuestion = false;
+      
+      //Remove class in case it was added
+      $("#name").removeClass("NotValid");
+       for (i = 1; i <= questions.length; i++) {
+        $(`#q${i}`).removeClass("NotValid");
+      };
+
+      //Check if no name was selected
+      if ($("#name").val().trim() === ""){
+        $("#name").addClass("NotValid");
+        $("#name").attr("placeholder", "And your name...?");
+        missingName = true;
+      };
+
+      //Check if one question was not answered
+      for (i = 1; i <= questions.length; i++) {
+        if ($(`#q${i}`).val() === null){
+          $(`#q${i}`).addClass("NotValid");
+          missingQuestion = true;
+        };
+      };
+
+      //Stop if the name or a question is missing
+      if (missingName || missingQuestion){
+        return;
+      }
+
+      //Save results
+      var results = [];
+      for (i = 1; i <= questions.length; i++) {
+        results.push($(`#q${i}`).val().trim())
+      };
+
+      //Save new friend information
+      var newFriend =
+        { name: $("#name").val().trim(),
+          photo: $("#image").val().trim(),
+          results: results
+        };
+
+      $.post("api/friends", newFriend)
+        .done(function (data) {
+
+          //Extract only results   
+          var ResultsArray = [];
+          for (var i = 0; i < data.length; i++) {
+            ResultsArray.push(data[i].results);
+          }
+
+          function Diff(a, b) { return Math.abs(a - b); }
+
+          var score = 0;
+          var scores = [];
+          var CurrentResult = ResultsArray[ResultsArray.length - 1];
+
+          //Compare every result agains current result
+          for (i = 0; i < ResultsArray.length - 1; i++) {
+            for (j = 0; j < 10; j++) {
+              score +=Diff(ResultsArray[i][j], CurrentResult[j]);
+            }
+            scores.push(score);
+            score = 0;
+          }
+          //Get index from lowest result
+          var index = scores.indexOf(Math.min(...scores));
+
+          //Check if there is an image 
+          if (!(/\.(gif|jpg|jpeg|tiff|png)$/i).test(data[index].photo)) {
+            data[index].photo = "https://journeypurebowlinggreen.com/wp-content/uploads/2018/05/placeholder-person.jpg";
+          }
+
+          //Update modal box
+          $("#modalName").html(data[index].name);
+          $("#modalImage").html(`<img src=${data[index].photo} alt=${data[index].name}>`);
+          $("#results").modal('toggle');
+
+          //Clean Fields
+          $("#name").val("");
+          $("#name").attr("placeholder", "Name");
+          $("#image").val("");
+          $("#image").attr("placeholder", "Your picture goes here...");
+          for (i = 1; i <= questions.length; i++) {
+            $(`#q${i}`).val("");
+          }
+
+        });
+      return false;
+    });
+
+  </script>
+
+</body>
+</html>
