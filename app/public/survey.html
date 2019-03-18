@@ -124,7 +124,6 @@
         missingName = true;
       };
 
-
       //Check if one question was not answered
       for (i = 1; i <= questions.length; i++) {
         if ($(`#q${i}`).val() === null){
@@ -141,12 +140,12 @@
           $("#image").attr("placeholder", "Must end on .gif, .jpg, .jpeg, .tiff, .png or be empty");
           missingImage = true;
         }
-      }
+      };
 
       //Stop if the name or a question is missing
       if (missingName || missingQuestion || missingImage){
         return;
-      }
+      };
 
       //Save results
       var results = [];
@@ -161,54 +160,54 @@
           results: results
         };
 
-      $.post("api/friends", newFriend)
-        .done(function (data) {
+      $.post("api/friends", newFriend,function (data) {
 
-          //Extract only results   
-          var ResultsArray = [];
-          for (var i = 0; i < data.length; i++) {
-            ResultsArray.push(data[i].results);
+        //Extract only results   
+        var ResultsArray = [];
+        for (var i = 0; i < data.length; i++) {
+          ResultsArray.push(data[i].results);
+        }
+
+        function Diff(a, b) { return Math.abs(a - b); }
+
+        var score = 0;
+        var scores = [];
+        var CurrentResult = ResultsArray[ResultsArray.length - 1];
+
+        //Compare every result agains current result
+        for (i = 0; i < ResultsArray.length - 1; i++) {
+          for (j = 0; j < 10; j++) {
+            score +=Diff(ResultsArray[i][j], CurrentResult[j]);
           }
+          scores.push(score);
+          score = 0;
+        }
+        //Get index from lowest result
+        var index = scores.indexOf(Math.min(...scores));
 
-          function Diff(a, b) { return Math.abs(a - b); }
+        //Check if there is an image 
+        if (!(/\.(gif|jpg|jpeg|tiff|png)$/i).test(data[index].photo)) {
+          data[index].photo = "https://journeypurebowlinggreen.com/wp-content/uploads/2018/05/placeholder-person.jpg";
+        }
 
-          var score = 0;
-          var scores = [];
-          var CurrentResult = ResultsArray[ResultsArray.length - 1];
+        //Update modal box
+        $("#modalName").html(data[index].name);
+        $("#modalImage").html(`<img src=${data[index].photo} alt=${data[index].name}>`);
+        $("#results").modal('toggle');
 
-          //Compare every result agains current result
-          for (i = 0; i < ResultsArray.length - 1; i++) {
-            for (j = 0; j < 10; j++) {
-              score +=Diff(ResultsArray[i][j], CurrentResult[j]);
-            }
-            scores.push(score);
-            score = 0;
-          }
-          //Get index from lowest result
-          var index = scores.indexOf(Math.min(...scores));
+        //Clean Fields
+        $("#name").val("");
+        $("#name").attr("placeholder", "Name");
+        $("#image").val("");
+        $("#image").attr("placeholder", "Your picture goes here...");
+        for (i = 1; i <= questions.length; i++) {
+          $(`#q${i}`).val("");
+        }
+      });
 
-          //Check if there is an image 
-          if (!(/\.(gif|jpg|jpeg|tiff|png)$/i).test(data[index].photo)) {
-            data[index].photo = "https://journeypurebowlinggreen.com/wp-content/uploads/2018/05/placeholder-person.jpg";
-          }
+  });
 
-          //Update modal box
-          $("#modalName").html(data[index].name);
-          $("#modalImage").html(`<img src=${data[index].photo} alt=${data[index].name}>`);
-          $("#results").modal('toggle');
-
-          //Clean Fields
-          $("#name").val("");
-          $("#name").attr("placeholder", "Name");
-          $("#image").val("");
-          $("#image").attr("placeholder", "Your picture goes here...");
-          for (i = 1; i <= questions.length; i++) {
-            $(`#q${i}`).val("");
-          }
-
-        });
-      return false;
-    });
+      
 
   </script>
 
