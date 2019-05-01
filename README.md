@@ -10,7 +10,7 @@ Using Express to handle routing
 ## Libraries
    * [Express](https://www.npmjs.com/package/express)
    * [jQuery](https://jquery.com/)
-   * [Boostrap](https://getbootstrap.com/)
+   * [Bootstrap](https://getbootstrap.com/)
 
 ***
 ## **Give it a try**
