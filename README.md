@@ -5,7 +5,8 @@ This full-stack site will take in results from a survey, then compare their answ
 The app will then display the name and picture of the user with the best overall match.
 Using Express to handle routing
 ***
-
+![Demo](./demo/friendFinder.png)
+***
 ## Libraries
    * [Express](https://www.npmjs.com/package/express)
    * [jQuery](https://jquery.com/)
